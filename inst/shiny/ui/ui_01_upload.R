@@ -3,6 +3,7 @@ accepted = c("text/csv",
              "text/plain",
              ".csv")
 
+
 tabPanel("Upload Data",
     useShinyjs(),
     tags$style(appCSS),
@@ -24,7 +25,7 @@ tabPanel("Upload Data",
         sidebarPanel(
             h3("Upload counts and metadata table"),
             tags$div(tags$p(
-                'Metadata file must contain "Sample" and "Batch" columns'
+                'Metadata file must be a table with headers and sample names.'
             )),
             fileInput(
                 "counts",
@@ -35,26 +36,64 @@ tabPanel("Upload Data",
             fileInput("md", "Metadata",
                       multiple = FALSE,
                       accept = accepted),
-            h3("Or upload a Summarized Experiment"),
             fileInput(
                 "se",
                 "Summarized Experiment",
                 multiple = FALSE,
                 accept = accepted
-            )
+            ),
+            #selectizeInput('group','Biological setting Column',choices =c(),multiple = F,selected = NULL,
+            #               options = list(
+            #                   placeholder = 'Please select an option below',
+            #                   onInitialize = I('function() { this.setValue(""); }')
+            #               )),
+            #selectizeInput('batch','Batch Variable Column',choices =c(),multiple = F,selected = NULL,
+            #               options = list(
+            #                   placeholder = 'Please select an option below',
+            #                   onInitialize = I('function() { this.setValue(""); }')
+            #               )),
+            actionButton(inputId = 'submit',label = 'Submit')
+
         ),
 
         # Show a table of the inputted data
         mainPanel(
             tabsetPanel(
+                tabPanel('Preview the first 10 lines of the input.',
+                         tableOutput('counts_header'),
+                         tableOutput('metadata_header')
+
+
+                         ),
+                tabPanel('Normalization',
+                         actionButton(inputId = 'DESEQ_normalization',label = 'DESEQ normalization'),
+                         actionButton(inputId = 'CPM_Normalization',label = 'CPM normalization')
+
+                ),
+                tabPanel('Full Metadata',
+                         dataTableOutput('metadata')),
+                tabPanel('Setting Variables',
+                         selectizeInput('group','Biological setting Column',choices =c(),multiple = F,selected = NULL,
+                                        options = list(
+                                            placeholder = 'Please select an option below',
+                                            onInitialize = I('function() { this.setValue(""); }')
+                                        )),
+                         selectizeInput('batch','Batch Variable Column',choices =c(),multiple = F,selected = NULL,
+                                        options = list(
+                                            placeholder = 'Please select an option below',
+                                            onInitialize = I('function() { this.setValue(""); }')
+                                        )),
+                         actionButton(inputId = 'submit_variables',label = 'Submit'),
+                         dataTableOutput('variable_overview')
+
+                         ),
                 tabPanel(
                     "Input",
                     selectInput("covariate", "Select Covariate:", choices = ""),
-                    tableOutput("summaryTable"),
                 ),
                 tabPanel("Confounding",
                          textOutput("text"),
-                         tableOutput("confoundingTable"),
+                         tableOutput("confoundingTable")
                 )
             )
         )
